@@ -1,5 +1,6 @@
 plugins {
     id 'java'
+    id "com.diffplug.spotless" version "6.12.1"
 }
 
 group 'jp.classmethod.toys'
@@ -7,6 +8,16 @@ version '1.0-SNAPSHOT'
 
 repositories {
     mavenCentral()
+}
+
+spotless {
+    java {
+        googleJavaFormat()
+        importOrder()
+        removeUnusedImports()
+
+        licenseHeader('/* Copyright (C) $YEAR komuro-hiraku */')
+    }
 }
 
 dependencies {
