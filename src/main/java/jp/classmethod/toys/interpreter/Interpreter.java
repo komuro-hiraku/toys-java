@@ -3,13 +3,20 @@ package jp.classmethod.toys.interpreter;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 /** Interpreter */
 public class Interpreter {
 
+  // TODO: Ast.Environment の実装がない
+  // private final Ast.Environment variableEnvironment;
+
   public final Map<String, Integer> environment;
 
+  private final Map<String, Ast.FunctionDefinition> functionEnvironment;
+
   public Interpreter() {
+    this.functionEnvironment = new HashMap<>();
     this.environment = new HashMap<>();
   }
 
@@ -71,8 +78,52 @@ public class Interpreter {
         value = interpret(element);
       }
       return value; // 最後に評価した値を返す
+    } else if (expression instanceof Ast.FunctionCall functionCall) {
+      // 関数呼び出し
+      var definition = functionEnvironment.get(functionCall.name());
+      if (definition == null) {
+        // 呼び出そうとした定義がない
+        throw new RuntimeException("Function " + functionCall.name() + " is not found");
+      }
+      var actualParams = functionCall.args(); // Expression のList
+      var formalParams = definition.args(); // String の List
+      var body = definition.body();
+
+      var values = actualParams.stream().map(this::interpret).toList(); // Expression なのでそれぞれ評価
+      var backup = variableEnvironment; // 現在の環境を保持
+      variableEnvironment = newEnvironment(Optional.of(variableEnvironment)); // 新たな環境を作って現在の環境をつなぐ
+
+      int i = 0;
+      for (var formalParamName : formalParams) {
+        variableEnvironment.bindings().put(formalParamName, values.get(i));
+        i++;
+      }
+
+      var result = interpret(body);
+      variableEnvironment = backup; // 関数評価が終わったので戻す
+      return result;
+
     } else {
       throw new RuntimeException("not reach here");
+    }
+  }
+
+  public int callMain(Ast.Program program) {
+    var topLevels = program.definitions();
+
+    for (var topLevel : topLevels) {
+      if (topLevel instanceof Ast.FunctionDefinition definition) {
+        functionEnvironment.put(definition.name(), definition);
+      } else {
+        // TODO: Global Variables
+      }
+    }
+
+    var mainFunction = functionEnvironment.get("main");
+    if (mainFunction != null) {
+      return interpret(mainFunction.body());
+    } else {
+      throw new LanguageException("This program doesn't have main() function");
     }
   }
 }

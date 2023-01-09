@@ -105,4 +105,9 @@ public class Ast {
   // Function 呼び出しは Expression を実装するのでどこから呼び出しても良い
   public static final record FunctionCall(String name, List<Expression> args)
       implements Expression {}
+
+  // Program
+  // https://github.com/toys-lang/toys/blob/master/src/main/java/com/github/kmizu/toys/Ast.java#L87
+  // SDには記載なかったっぽい
+  public static final record Program(List<TopLevel> definitions) {}
 }
