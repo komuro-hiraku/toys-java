@@ -12,6 +12,7 @@ public class Ast {
       permits Assignment,
           BinaryExpression,
           BlockExpression,
+          FunctionCall,
           Identifier,
           IfExpression,
           IntegerLiteral,
@@ -94,4 +95,14 @@ public class Ast {
       }
     }
   }
+
+  public sealed interface TopLevel permits FunctionDefinition {}
+
+  // Function 定義は TopLevel でしかダメ
+  public static final record FunctionDefinition(String name, List<String> args, Expression body)
+      implements TopLevel {}
+
+  // Function 呼び出しは Expression を実装するのでどこから呼び出しても良い
+  public static final record FunctionCall(String name, List<Expression> args)
+      implements Expression {}
 }
