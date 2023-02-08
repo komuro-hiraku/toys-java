@@ -51,6 +51,28 @@ public class Ast {
     return new IfExpression(condition, thenClause, Optional.empty());
   }
 
+  public static IfExpression If(
+      Expression condition, Expression thenClause, Optional<Expression> elseClause) {
+    return new IfExpression(condition, thenClause, elseClause);
+  }
+
+  public static Identifier symbol(String n) {
+    return new Identifier(n);
+  }
+
+  public static BinaryExpression lessThan(Identifier lhs, Expression rhs) {
+    return new BinaryExpression(Operator.LESS_THAN, lhs, rhs);
+  }
+
+  public static FunctionCall call(String name, Expression... args) {
+    return new FunctionCall(name, List.of(args));
+  }
+
+  public static FunctionDefinition DefineFunction(
+      String name, List<String> expressions, BlockExpression block) {
+    return new FunctionDefinition(name, expressions, block);
+  }
+
   ////// 以下Expression定義
   public static final record BinaryExpression(Operator operator, Expression lhs, Expression rhs)
       implements Expression {}

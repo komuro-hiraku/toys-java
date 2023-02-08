@@ -9,15 +9,22 @@ import java.util.Optional;
 public class Interpreter {
 
   // TODO: Ast.Environment の実装がない
-  // private final Ast.Environment variableEnvironment;
-
-  public final Map<String, Integer> environment;
+  private Ast.Environment variableEnvironment;
 
   private final Map<String, Ast.FunctionDefinition> functionEnvironment;
 
   public Interpreter() {
     this.functionEnvironment = new HashMap<>();
-    this.environment = new HashMap<>();
+    variableEnvironment = newEnvironment(Optional.empty());
+  }
+
+  public void reset() {
+    variableEnvironment = newEnvironment(Optional.empty());
+    functionEnvironment.clear();
+  }
+
+  private static Ast.Environment newEnvironment(Optional<Ast.Environment> next) {
+    return new Ast.Environment(new HashMap<>(), next);
   }
 
   public int interpret(Ast.Expression expression) {
@@ -43,10 +50,16 @@ public class Interpreter {
     } else if (expression instanceof Ast.IntegerLiteral integer) {
       return integer.value();
     } else if (expression instanceof Ast.Identifier e) {
-      return environment.get(e.name());
+      var bindingOpt = variableEnvironment.findBinding(e.name());
+      return bindingOpt.get().get(e.name());
     } else if (expression instanceof Ast.Assignment e) {
+      var bindingOpt = variableEnvironment.findBinding(e.name());
       int value = interpret(e.expression());
-      environment.put(e.name(), value);
+      if (bindingOpt.isPresent()) {
+        bindingOpt.get().put(e.name(), value);
+      } else {
+        variableEnvironment.bindings().put(e.name(), value);
+      }
       return value;
     } else if (expression instanceof Ast.IfExpression e) {
       int condition = interpret(e.condition());
