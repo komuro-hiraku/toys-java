@@ -15,7 +15,7 @@ class InterpreterTest {
   @Test
   public void test10Plus20ShouldWork() {
     Ast.Expression e = add(integer(10), integer(20));
-    assertEquals(30, interpreter.interpret(e));
+    assertEquals(30, interpreter.interpret(e).asInt().value());
   }
 
   @Test
