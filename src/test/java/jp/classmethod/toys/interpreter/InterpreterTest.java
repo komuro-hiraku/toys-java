@@ -43,7 +43,7 @@ class InterpreterTest {
                         Optional.of(
                             multiply(
                                 symbol("n"), call("fact", subtract(symbol("n"), integer(1)))))))));
-    int result = interpreter.callMain(new Ast.Program(topLevels));
-    assertEquals(120, result);
+    var result = interpreter.callMain(new Ast.Program(topLevels));
+    assertEquals(120, result.asInt().value());
   }
 }

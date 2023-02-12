@@ -27,34 +27,34 @@ public class Interpreter {
     return new Ast.Environment(new HashMap<>(), next);
   }
 
-  public int interpret(Ast.Expression expression) {
+  public Values.Value interpret(Ast.Expression expression) {
 
     if (expression instanceof Ast.BinaryExpression binaryExpression) {
-      var lhs = interpret(binaryExpression.lhs());
-      var rhs = interpret(binaryExpression.rhs());
+      var lhs = interpret(binaryExpression.lhs()).asInt().value();
+      var rhs = interpret(binaryExpression.rhs()).asInt().value();
       return switch (binaryExpression.operator()) {
           // 四則演算
-        case ADD -> lhs + rhs;
-        case SUBTRACT -> lhs - rhs;
-        case MULTIPLY -> lhs * rhs;
-        case DIVIDE -> lhs / rhs;
+        case ADD -> Values.wrap(lhs + rhs);
+        case SUBTRACT -> Values.wrap(lhs - rhs);
+        case MULTIPLY -> Values.wrap(lhs * rhs);
+        case DIVIDE -> Values.wrap(lhs / rhs);
 
           // 比較式
-        case LESS_THAN -> lhs > rhs ? 1 : 0;
-        case LESS_OR_EQUAL -> lhs >= rhs ? 1 : 0;
-        case GREATER_THAN -> lhs < rhs ? 1 : 0;
-        case GREATER_OR_EQUAL -> lhs <= rhs ? 1 : 0;
-        case EQUAL_EQUAL -> lhs == rhs ? 1 : 0;
-        case NOT_EQUAL -> lhs != rhs ? 1 : 0;
+        case LESS_THAN -> Values.wrap(lhs > rhs);
+        case LESS_OR_EQUAL -> Values.wrap(lhs >= rhs);
+        case GREATER_THAN -> Values.wrap(lhs < rhs);
+        case GREATER_OR_EQUAL -> Values.wrap(lhs <= rhs);
+        case EQUAL_EQUAL -> Values.wrap(lhs == rhs);
+        case NOT_EQUAL -> Values.wrap(lhs != rhs);
       };
     } else if (expression instanceof Ast.IntegerLiteral integer) {
-      return integer.value();
+      return Values.wrap(integer.value());
     } else if (expression instanceof Ast.Identifier e) {
       var bindingOpt = variableEnvironment.findBinding(e.name());
       return bindingOpt.get().get(e.name());
     } else if (expression instanceof Ast.Assignment e) {
       var bindingOpt = variableEnvironment.findBinding(e.name());
-      int value = interpret(e.expression());
+      var value = interpret(e.expression());
       if (bindingOpt.isPresent()) {
         bindingOpt.get().put(e.name(), value);
       } else {
@@ -62,31 +62,31 @@ public class Interpreter {
       }
       return value;
     } else if (expression instanceof Ast.IfExpression e) {
-      int condition = interpret(e.condition());
-      if (condition != 0) {
+      var condition = interpret(e.condition()).asBool().value();
+      if (condition) {
         return interpret(e.thenClause());
       } else {
         var elseClauseOpt = e.elseClause();
-        // Optional で存在しなかったら1を返す
-        return elseClauseOpt.map(this::interpret).orElse(1);
+        // Optional で存在しなかったらnullを返す
+        return elseClauseOpt.map(this::interpret).orElse(null);
       }
     } else if (expression instanceof Ast.WhileExpression e) {
       // 無限ループでひたすら評価
       while (true) {
-        int condition = interpret(e.condition()); // condition 部を評価
+        var condition = interpret(e.condition()).asBool().value(); // condition 部を評価
 
         // 条件が真であれば body を評価
-        if (condition != 0) {
+        if (condition) {
           interpret(e.body());
         } else {
           // 条件が偽であれば脱出
           break;
         }
       }
-      // 直値
-      return 1;
+
+      return Values.wrap(true);
     } else if (expression instanceof Ast.BlockExpression e) {
-      int value = 0; // 初期化
+      Values.Value value = null; // 初期化
       for (var element : e.elements()) { // Block 内部を評価
         value = interpret(element);
       }
@@ -121,7 +121,7 @@ public class Interpreter {
     }
   }
 
-  public int callMain(Ast.Program program) {
+  public Values.Value callMain(Ast.Program program) {
     var topLevels = program.definitions();
 
     for (var topLevel : topLevels) {

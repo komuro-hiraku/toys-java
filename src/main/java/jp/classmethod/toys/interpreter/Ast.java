@@ -98,7 +98,7 @@ public class Ast {
 
   //// Environment
   public static final record Environment(
-      Map<String, Integer> bindings, Optional<Environment> next) {
+      Map<String, Values.Value> bindings, Optional<Environment> next) {
 
     /**
      * パラメータ名を Environment の中から探す。 bindings から name が存在するかどうかをチェック。なければ next で findBindings を実行
@@ -106,7 +106,7 @@ public class Ast {
      * @param name 登録してあるパラメータ名
      * @return {@link Optional}
      */
-    public Optional<Map<String, Integer>> findBinding(String name) {
+    public Optional<Map<String, Values.Value>> findBinding(String name) {
       if (bindings.get(name) != null) {
         return Optional.of(bindings);
       }
