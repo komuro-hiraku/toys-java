@@ -40,10 +40,10 @@ public class Interpreter {
         case DIVIDE -> Values.wrap(lhs / rhs);
 
           // 比較式
-        case LESS_THAN -> Values.wrap(lhs > rhs);
-        case LESS_OR_EQUAL -> Values.wrap(lhs >= rhs);
-        case GREATER_THAN -> Values.wrap(lhs < rhs);
-        case GREATER_OR_EQUAL -> Values.wrap(lhs <= rhs);
+        case LESS_THAN -> Values.wrap(lhs < rhs);
+        case LESS_OR_EQUAL -> Values.wrap(lhs <= rhs);
+        case GREATER_THAN -> Values.wrap(lhs > rhs);
+        case GREATER_OR_EQUAL -> Values.wrap(lhs >= rhs);
         case EQUAL_EQUAL -> Values.wrap(lhs == rhs);
         case NOT_EQUAL -> Values.wrap(lhs != rhs);
       };
