@@ -12,6 +12,7 @@ public class Ast {
       permits Assignment,
           BinaryExpression,
           BlockExpression,
+          FunctionCall,
           Identifier,
           IfExpression,
           IntegerLiteral,
@@ -50,6 +51,28 @@ public class Ast {
     return new IfExpression(condition, thenClause, Optional.empty());
   }
 
+  public static IfExpression If(
+      Expression condition, Expression thenClause, Optional<Expression> elseClause) {
+    return new IfExpression(condition, thenClause, elseClause);
+  }
+
+  public static Identifier symbol(String n) {
+    return new Identifier(n);
+  }
+
+  public static BinaryExpression lessThan(Identifier lhs, Expression rhs) {
+    return new BinaryExpression(Operator.LESS_THAN, lhs, rhs);
+  }
+
+  public static FunctionCall call(String name, Expression... args) {
+    return new FunctionCall(name, List.of(args));
+  }
+
+  public static FunctionDefinition DefineFunction(
+      String name, List<String> expressions, BlockExpression block) {
+    return new FunctionDefinition(name, expressions, block);
+  }
+
   ////// 以下Expression定義
   public static final record BinaryExpression(Operator operator, Expression lhs, Expression rhs)
       implements Expression {}
@@ -75,7 +98,7 @@ public class Ast {
 
   //// Environment
   public static final record Environment(
-      Map<String, Integer> bindings, Optional<Environment> next) {
+      Map<String, Values.Value> bindings, Optional<Environment> next) {
 
     /**
      * パラメータ名を Environment の中から探す。 bindings から name が存在するかどうかをチェック。なければ next で findBindings を実行
@@ -83,7 +106,7 @@ public class Ast {
      * @param name 登録してあるパラメータ名
      * @return {@link Optional}
      */
-    public Optional<Map<String, Integer>> findBinding(String name) {
+    public Optional<Map<String, Values.Value>> findBinding(String name) {
       if (bindings.get(name) != null) {
         return Optional.of(bindings);
       }
@@ -94,4 +117,19 @@ public class Ast {
       }
     }
   }
+
+  public sealed interface TopLevel permits FunctionDefinition {}
+
+  // Function 定義は TopLevel でしかダメ
+  public static final record FunctionDefinition(String name, List<String> args, Expression body)
+      implements TopLevel {}
+
+  // Function 呼び出しは Expression を実装するのでどこから呼び出しても良い
+  public static final record FunctionCall(String name, List<Expression> args)
+      implements Expression {}
+
+  // Program
+  // https://github.com/toys-lang/toys/blob/master/src/main/java/com/github/kmizu/toys/Ast.java#L87
+  // SDには記載なかったっぽい
+  public static final record Program(List<TopLevel> definitions) {}
 }
