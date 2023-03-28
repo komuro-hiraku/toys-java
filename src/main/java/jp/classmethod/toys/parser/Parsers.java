@@ -29,7 +29,7 @@ public class Parsers {
     public static final Parser<Character, Ast.IntegerLiteral> integer =
         intr                                            // 数値の文字列を合致させる
                     .map(Ast::integer)                  // Ast::integer で IntegerLiteral に変換
-                    .bind(v -> SPACINGS.map(__ -> v));  // ここの Operation がよくわかっていない???
+                    .bind(v -> SPACINGS.map(__ -> v));  // ここの Operation がよくわかっていない???:
 
     // expression <- additive;
     public static Parser<Character, Ast.Expression> expression() {return additive();}
