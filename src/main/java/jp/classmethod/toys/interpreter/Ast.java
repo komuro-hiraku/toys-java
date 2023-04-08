@@ -9,13 +9,16 @@ import java.util.Optional;
 public class Ast {
 
   public sealed interface Expression
-      permits Assignment,
+      permits ArrayLiteral,
+          Assignment,
           BinaryExpression,
           BlockExpression,
+          BoolLiteral,
           FunctionCall,
           Identifier,
           IfExpression,
           IntegerLiteral,
+          LabelledCall,
           WhileExpression {}
 
   public static BinaryExpression add(Expression lhs, Expression rhs) {
@@ -127,6 +130,16 @@ public class Ast {
   // Function 呼び出しは Expression を実装するのでどこから呼び出しても良い
   public static final record FunctionCall(String name, List<Expression> args)
       implements Expression {}
+
+  // ラベル付き呼び出し
+  public static final record LabelledParameter(String name, Expression parameter) {}
+
+  public static final record LabelledCall(String name, List<LabelledParameter> args)
+      implements Expression {}
+
+  public static final record ArrayLiteral(List<Expression> items) implements Expression {}
+
+  public static final record BoolLiteral(boolean param) implements Expression {}
 
   // Program
   // https://github.com/toys-lang/toys/blob/master/src/main/java/com/github/kmizu/toys/Ast.java#L87
