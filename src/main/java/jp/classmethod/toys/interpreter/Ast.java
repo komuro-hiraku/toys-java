@@ -121,7 +121,7 @@ public class Ast {
     }
   }
 
-  public sealed interface TopLevel permits FunctionDefinition {}
+  public sealed interface TopLevel permits FunctionDefinition, GlobalVariableDefinition {}
 
   // Function 定義は TopLevel でしかダメ
   public static final record FunctionDefinition(String name, List<String> args, Expression body)
@@ -145,4 +145,8 @@ public class Ast {
   // https://github.com/toys-lang/toys/blob/master/src/main/java/com/github/kmizu/toys/Ast.java#L87
   // SDには記載なかったっぽい
   public static final record Program(List<TopLevel> definitions) {}
+
+  // Global 変数
+  public static final record GlobalVariableDefinition(String name, Expression expression)
+      implements TopLevel {}
 }
