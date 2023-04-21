@@ -24,10 +24,18 @@ public class Parsers {
   public static final Parser<Character, Unit> SLASH = string("/").then(SPACINGS);
   public static final Parser<Character, Unit> LPAREN = string("(").then(SPACINGS);
   public static final Parser<Character, Unit> RPAREN = string(")").then(SPACINGS);
+  public static final Parser<Character, Unit> COMMA = string(",").then(SPACINGS);
+  public static final Parser<Character, Unit> LBRACKET = string("[").then(SPACINGS);
+  public static final Parser<Character, Unit> RBRACKET = string("]").then(SPACINGS);
+  public static final Parser<Character, Unit> EQ = string("=").then(SPACINGS);
+  public static final Parser<Character, Unit> TRUE = string("true").then(SPACINGS);
+  public static final Parser<Character, Unit> FALSE = string("false").then(SPACINGS);
+  public static final Parser<Character, String> IDENT =
+      regex("[a-zA-Z_][a-zA-Z0-9_]*").bind(name -> SPACINGS.map(__ -> name));
   public static final Parser<Character, Ast.IntegerLiteral> integer =
       intr // 数値の文字列を合致させる
           .map(Ast::integer) // Ast::integer で IntegerLiteral に変換
-          .bind(v -> SPACINGS.map(__ -> v)); // ここの Operation がよくわかっていない???
+          .bind(v -> SPACINGS.map(__ -> v)); // ここの Operation がよくわかっていない???:
 
   // expression <- additive;
   public static Parser<Character, Ast.Expression> expression() {
@@ -52,6 +60,60 @@ public class Parsers {
   }
 
   public static Parser<Character, Ast.Expression> primary() {
-    return LPAREN.bind(_1 -> expression().bind(v -> RPAREN.map(_2 -> v))).or(integer);
+    return LPAREN
+        .bind(_1 -> expression().bind(v -> RPAREN.map(_2 -> v)))
+        .or(integer)
+        .or(functionCall())
+        .or(labelledCall())
+        .or(arrayLiteral())
+        .or(boolLiteral())
+        .or(identifier());
+  }
+
+  // Example func(0, "fuga")
+  public static Parser<Character, Ast.FunctionCall> functionCall() {
+    return IDENT
+        .bind(
+            name ->
+                expression()
+                    .sepBy(COMMA) // separate
+                    .between(LPAREN, RPAREN) // ( and )
+                    .map(params -> new Ast.FunctionCall(name, params.toList())) // 引数を List にして呼び出し
+            )
+        .attempt(); // ???
+  }
+
+  // Example func[num = 0, str = "fuga"]
+  public static Parser<Character, Ast.LabelledCall> labelledCall() {
+    return IDENT
+        .bind(
+            name ->
+                IDENT
+                    .bind(
+                        label ->
+                            EQ.then(expression())
+                                .map(param -> new Ast.LabelledParameter(label, param)))
+                    .sepBy(COMMA)
+                    .between(LBRACKET, RBRACKET)
+                    .map(params -> new Ast.LabelledCall(name, params.toList())))
+        .attempt();
+  }
+
+  // Example [0, 1, 2, 3, 4]
+  public static Parser<Character, Ast.ArrayLiteral> arrayLiteral() {
+    return LBRACKET.bind(
+        __1 ->
+            expression()
+                .sepBy(COMMA)
+                .bind(params -> RBRACKET.map(__2 -> new Ast.ArrayLiteral(params.toList()))));
+  }
+
+  public static Parser<Character, Ast.Identifier> identifier() {
+    return IDENT.map(Ast.Identifier::new);
+  }
+
+  public static Parser<Character, Ast.BoolLiteral> boolLiteral() {
+    return TRUE.map(__ -> new Ast.BoolLiteral(true))
+        .or(FALSE.map(__ -> new Ast.BoolLiteral(false)));
   }
 }
