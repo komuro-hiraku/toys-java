@@ -8,7 +8,6 @@ import java.util.Optional;
 /** Interpreter */
 public class Interpreter {
 
-  // TODO: Ast.Environment の実装がない
   private Ast.Environment variableEnvironment;
 
   private final Map<String, Ast.FunctionDefinition> functionEnvironment;
@@ -127,8 +126,10 @@ public class Interpreter {
     for (var topLevel : topLevels) {
       if (topLevel instanceof Ast.FunctionDefinition definition) {
         functionEnvironment.put(definition.name(), definition);
-      } else {
-        // TODO: Global Variables
+      } else if (topLevel instanceof Ast.GlobalVariableDefinition globalVariableDefinition) {
+        variableEnvironment
+            .bindings()
+            .put(globalVariableDefinition.name(), interpret(globalVariableDefinition.expression()));
       }
     }
 

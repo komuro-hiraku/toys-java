@@ -71,6 +71,9 @@ multitive <- primary (
 primary <- "(" expression ")"
             / integer
             / functionCall
+            / labbeledCall  // 未定義
+            / arrayLiteral  // 未定義
+            / boolLiteral   // 未定義
             / identifier;
 
 // 関数呼び出し定義
