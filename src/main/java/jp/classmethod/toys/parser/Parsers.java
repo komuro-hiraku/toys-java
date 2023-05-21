@@ -4,6 +4,7 @@ package jp.classmethod.toys.parser;
 import static org.javafp.parsecj.Text.*;
 
 import java.util.function.BinaryOperator;
+import jp.classmethod.toys.exceptions.UnimplementedException;
 import jp.classmethod.toys.interpreter.Ast;
 import org.javafp.data.IList;
 import org.javafp.data.Unit;
@@ -148,28 +149,51 @@ public class Parsers {
   public static Parser<Character, Ast.FunctionDefinition> functionDefinition() {
     var defName = DEFINE.then(IDENT);
     var defArgs = IDENT.sepBy(COMMA).between(LPAREN, RPAREN);
-    return defName.bind(name ->
-            defArgs.bind(args ->
-                    blockExpression().map(body -> new Ast.FunctionDefinition(name, args.toList(), body))
-            )
-    );
+    return defName.bind(
+        name ->
+            defArgs.bind(
+                args ->
+                    blockExpression()
+                        .map(body -> new Ast.FunctionDefinition(name, args.toList(), body))));
   }
 
   public static Parser<Character, Ast.BlockExpression> blockExpression() {
-    return LBRACE.bind(__ ->
-            line().maney()).bind(expressions ->
-            RBRACE.map(__ -> new Ast.BlockExpression(expressions.toList())));
+    return LBRACE
+        .bind(__ -> line().many())
+        .bind(expressions -> RBRACE.map(__ -> new Ast.BlockExpression(expressions.toList())));
   }
 
   public static Parser<Character, Ast.Expression> line() {
-    return
-            println()
-                    .or(whileExrepssion())
-                    .or(ifExpression())
-                    .or(forInExpression())
-                    .or(assignment())
-                    .or(expressionLine())
-                    .or(blockExpression());
+    return println()
+        .or(whileExpression())
+        .or(ifExpression())
+        .or(forInExpression())
+        .or(assignment())
+        .or(expressionLine())
+        .or(blockExpression());
   }
 
+  public static Parser<Character, Ast.Expression> println() {
+    throw new UnimplementedException("println");
+  }
+
+  public static Parser<Character, Ast.Expression> ifExpression() {
+    throw new UnimplementedException("ifExpression");
+  }
+
+  public static Parser<Character, Ast.Expression> whileExpression() {
+    throw new UnimplementedException("whileExpression");
+  }
+
+  public static Parser<Character, Ast.Expression> forInExpression() {
+    throw new UnimplementedException("forInExpression");
+  }
+
+  public static Parser<Character, Ast.Expression> assignment() {
+    throw new UnimplementedException("assignment");
+  }
+
+  public static Parser<Character, Ast.Expression> expressionLine() {
+    throw new UnimplementedException("expressionLine");
+  }
 }
