@@ -5,6 +5,7 @@ import static org.javafp.parsecj.Text.*;
 
 import java.util.function.BinaryOperator;
 import jp.classmethod.toys.interpreter.Ast;
+import org.javafp.data.IList;
 import org.javafp.data.Unit;
 import org.javafp.parsecj.Parser;
 
@@ -115,5 +116,26 @@ public class Parsers {
   public static Parser<Character, Ast.BoolLiteral> boolLiteral() {
     return TRUE.map(__ -> new Ast.BoolLiteral(true))
         .or(FALSE.map(__ -> new Ast.BoolLiteral(false)));
+  }
+
+  public static Parser<Character, Ast.Program> program() {
+    return SPACINGS.bind(_1 -> topLevelDefinition().many()
+            .map(IList::toList)
+            .map(Ast.Program::new));
+  }
+
+  public static Parser<Character, Ast.TopLevel> topLevelDefinition() {
+    return globalVariableDefinition()
+            .map( g -> (Ast.TopLevel)g)
+            .or(functionDefinition()
+                    .map(f -> (Ast.TopLevel)f));
+  }
+
+  public static Parser<Character, Ast.GlobalVariableDefinition> globalVariableDefinition() {
+    return null;
+  }
+
+  public static Parser<Character, Ast.FunctionDefinition> functionDefinition() {
+    return null;
   }
 }
