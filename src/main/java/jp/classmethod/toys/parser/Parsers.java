@@ -31,6 +31,8 @@ public class Parsers {
   public static final Parser<Character, Unit> EQ = string("=").then(SPACINGS);
   public static final Parser<Character, Unit> TRUE = string("true").then(SPACINGS);
   public static final Parser<Character, Unit> FALSE = string("false").then(SPACINGS);
+  public static final Parser<Character, Unit> GLOBAL = string("global").then(SPACINGS);
+  public static final Parser<Character, Unit> SEMI_COLON = string(";").then(SPACINGS);
   public static final Parser<Character, String> IDENT =
       regex("[a-zA-Z_][a-zA-Z0-9_]*").bind(name -> SPACINGS.map(__ -> name));
   public static final Parser<Character, Ast.IntegerLiteral> integer =
@@ -119,20 +121,25 @@ public class Parsers {
   }
 
   public static Parser<Character, Ast.Program> program() {
-    return SPACINGS.bind(_1 -> topLevelDefinition().many()
-            .map(IList::toList)
-            .map(Ast.Program::new));
+    return SPACINGS.bind(
+        _1 -> topLevelDefinition().many().map(IList::toList).map(Ast.Program::new));
   }
 
   public static Parser<Character, Ast.TopLevel> topLevelDefinition() {
     return globalVariableDefinition()
-            .map( g -> (Ast.TopLevel)g)
-            .or(functionDefinition()
-                    .map(f -> (Ast.TopLevel)f));
+        .map(g -> (Ast.TopLevel) g)
+        .or(functionDefinition().map(f -> (Ast.TopLevel) f));
   }
 
   public static Parser<Character, Ast.GlobalVariableDefinition> globalVariableDefinition() {
-    return null;
+    // example => global hoge = "aaaaa";
+    var defGlobal = GLOBAL.then(IDENT); // global 宣言が来たら, identifier が定義される
+    var defInitializer = EQ.then(expression()); // = より後ろは任意の expression()
+    return defGlobal.bind(
+        name ->
+            defInitializer.bind(
+                expression ->
+                    SEMI_COLON.map(_1 -> new Ast.GlobalVariableDefinition(name, expression))));
   }
 
   public static Parser<Character, Ast.FunctionDefinition> functionDefinition() {
