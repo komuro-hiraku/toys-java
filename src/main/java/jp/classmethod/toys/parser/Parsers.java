@@ -33,6 +33,9 @@ public class Parsers {
   public static final Parser<Character, Unit> FALSE = string("false").then(SPACINGS);
   public static final Parser<Character, Unit> GLOBAL = string("global").then(SPACINGS);
   public static final Parser<Character, Unit> SEMI_COLON = string(";").then(SPACINGS);
+  public static final Parser<Character, Unit> DEFINE = string("define").then(SPACINGS);
+  public static final Parser<Character, Unit> LBRACE = string("{").then(SPACINGS);
+  public static final Parser<Character, Unit> RBRACE = string("}").then(SPACINGS);
   public static final Parser<Character, String> IDENT =
       regex("[a-zA-Z_][a-zA-Z0-9_]*").bind(name -> SPACINGS.map(__ -> name));
   public static final Parser<Character, Ast.IntegerLiteral> integer =
@@ -143,6 +146,30 @@ public class Parsers {
   }
 
   public static Parser<Character, Ast.FunctionDefinition> functionDefinition() {
-    return null;
+    var defName = DEFINE.then(IDENT);
+    var defArgs = IDENT.sepBy(COMMA).between(LPAREN, RPAREN);
+    return defName.bind(name ->
+            defArgs.bind(args ->
+                    blockExpression().map(body -> new Ast.FunctionDefinition(name, args.toList(), body))
+            )
+    );
   }
+
+  public static Parser<Character, Ast.BlockExpression> blockExpression() {
+    return LBRACE.bind(__ ->
+            line().maney()).bind(expressions ->
+            RBRACE.map(__ -> new Ast.BlockExpression(expressions.toList())));
+  }
+
+  public static Parser<Character, Ast.Expression> line() {
+    return
+            println()
+                    .or(whileExrepssion())
+                    .or(ifExpression())
+                    .or(forInExpression())
+                    .or(assignment())
+                    .or(expressionLine())
+                    .or(blockExpression());
+  }
+
 }
